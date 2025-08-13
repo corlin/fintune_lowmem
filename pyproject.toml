@@ -1,0 +1,20 @@
+[project]
+name = "gpu-test-project"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "accelerate>=1.10.0",
+    "bitsandbytes>=0.47.0",
+    "datasets>=4.0.0",
+    "gradio>=5.3.0",
+    "peft>=0.17.0",
+    "protobuf>=6.31.1",
+    "scikit-learn>=1.7.1",
+    "scipy>=1.15.3",
+    "sentencepiece>=0.2.1",
+    "tensorboard>=2.20.0",
+    "transformers>=4.55.0",
+    "wandb>=0.21.1",
+]
