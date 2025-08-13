@@ -18,8 +18,9 @@ from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from datasets import load_dataset
 import numpy as np
 import os
-
-def setup_model_and_tokenizer(model_name="Qwen/Qwen3-4B-Instruct-2507"):
+#Qwen/Qwen3-4B-Thinking-2507
+#Qwen/Qwen3-4B-Instruct-2507
+def setup_model_and_tokenizer(model_name="Qwen/Qwen3-4B-Thinking-2507"):
     """设置模型和分词器 - 针对显存深度优化"""
     print(f"🔄 正在加载模型: {model_name}")
     
@@ -297,7 +298,7 @@ def setup_training_args(output_dir="./qwen3-finetuned"):
         per_device_train_batch_size=1,  # 最小批次大小以节省显存
         gradient_accumulation_steps=16,  # 增加梯度累积步数以保持有效批次大小
         learning_rate=5e-5,  # 进一步降低学习率以提高稳定性
-        num_train_epochs=5,  # 增加训练轮次以提升模型效果（从2轮增加到5轮）
+        num_train_epochs=30,  # 增加训练轮次以提升模型效果（从2轮增加到5轮）
         
         # 优化器参数 - 使用最内存高效的优化器
         optim="paged_adamw_8bit",  # 8bit Adam 优化器，节省显存
@@ -400,7 +401,9 @@ def test_inference(model_path, test_prompt="密钥管理是什么"):
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     
     # 加载基础模型
-    base_model_name = "Qwen/Qwen3-4B-Instruct-2507"
+    #Qwen/Qwen3-4B-Thinking-2507
+    #Qwen/Qwen3-4B-Instruct-2507
+    base_model_name = "Qwen/Qwen3-4B-Thinking-2507"
     
     # 4bit 量化配置
     bnb_config = BitsAndBytesConfig(
@@ -528,7 +531,8 @@ def main():
     try:
         # 1. 设置模型和分词器 - 添加OOM防护
         print("📋 步骤 1: 加载模型和分词器")
-        model_name = "Qwen/Qwen3-4B-Instruct-2507"
+        #Qwen/Qwen3-4B-Thinking-2507
+        model_name = "Qwen/Qwen3-4B-Thinking-2507"#"Qwen/Qwen3-4B-Instruct-2507"
         model, tokenizer = setup_model_and_tokenizer(model_name)
         
         # 检查显存
