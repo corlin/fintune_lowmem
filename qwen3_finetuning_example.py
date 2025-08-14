@@ -82,12 +82,12 @@ def setup_lora(model):
     
     # LoRA 配置 - 针对16G显存深度优化
     lora_config = LoraConfig(
-        r=4,  # 进一步减小LoRA矩阵的秩以节省显存（从8降到4）
-        lora_alpha=8,  # 相应调整缩放因子（alpha = 2*r）
+        r=6,  # 进一步减小LoRA矩阵的秩以节省显存（从8降到4）
+        lora_alpha=12,  # 相应调整缩放因子（alpha = 2*r）
         target_modules=[  # 精选目标模块，最小化显存占用
-            "q_proj", "v_proj",  # 只对最重要的注意力模块应用LoRA
+            "q_proj", "v_proj", "ffn.w1"  # 只对最重要的注意力模块应用LoRA
         ],
-        lora_dropout=0.05,  # 降低dropout以减少计算开销
+        lora_dropout=0.1,  # 降低dropout以减少计算开销
         bias="none",  # 不训练偏置以节省参数
         task_type="CAUSAL_LM",  # 因果语言模型任务
         
@@ -295,10 +295,10 @@ def setup_training_args(output_dir="./qwen3-finetuned"):
     training_args = TrainingArguments(
         # 基本参数 - 深度优化批次大小以适应16G显存
         output_dir=output_dir,
-        per_device_train_batch_size=1,  # 最小批次大小以节省显存
+        per_device_train_batch_size=4,  # 最小批次大小以节省显存
         gradient_accumulation_steps=16,  # 增加梯度累积步数以保持有效批次大小
         learning_rate=5e-5,  # 进一步降低学习率以提高稳定性
-        num_train_epochs=30,  # 增加训练轮次以提升模型效果（从2轮增加到5轮）
+        num_train_epochs=100,  # 增加训练轮次以提升模型效果（从2轮增加到5轮）
         
         # 优化器参数 - 使用最内存高效的优化器
         optim="paged_adamw_8bit",  # 8bit Adam 优化器，节省显存
@@ -310,7 +310,7 @@ def setup_training_args(output_dir="./qwen3-finetuned"):
         bf16=True,   # 优先使用BF16，精度更好且在某些GPU上更快
         
         # 保存和日志 - 大幅减少保存频率以减少IO开销和显存使用
-        logging_steps=5,  # 进一步减少日志频率
+        logging_steps=10,  # 进一步减少日志频率
         save_steps=10,    # 进一步减少保存频率
         save_total_limit=2,  # 只保留最新的1个检查点以节省磁盘空间
         logging_dir="./logs",
@@ -327,11 +327,11 @@ def setup_training_args(output_dir="./qwen3-finetuned"):
         ddp_find_unused_parameters=False,
         
         # 数据加载优化 - 进一步优化以减少内存使用
-        dataloader_num_workers=1,  # 减少工作线程以节省内存
+        dataloader_num_workers=4,  # 减少工作线程以节省内存
         dataloader_pin_memory=True,  # 固定内存以加速数据传输
         
         # 内存和性能优化
-        per_device_eval_batch_size=1,  # 评估时也使用小批次
+        per_device_eval_batch_size=2,  # 评估时也使用小批次
         max_grad_norm=0.5,  # 降低梯度裁剪阈值以提高稳定性
         seed=42,  # 设置随机种子以保证可重复性
         
@@ -442,7 +442,7 @@ def test_inference(model_path, test_prompt="密钥管理是什么"):
     with torch.no_grad():
         outputs = model.generate(
             **inputs,
-            max_new_tokens=200,
+            max_new_tokens=1024,
             temperature=0.7,
             do_sample=True,
             pad_token_id=tokenizer.eos_token_id
